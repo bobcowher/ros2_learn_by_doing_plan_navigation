@@ -1,0 +1,31 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/robertcowher/rosprojects/bumperbot_ws/install/bumperbot_cpp_examples/include/**",
+        "/home/robertcowher/rosprojects/bumperbot_ws/install/bumperbot_msgs/include/**",
+        "/home/robertcowher/rosprojects/bumperbot_ws/install/bumperbot_mapping/include/**",
+        "/home/robertcowher/rosprojects/bumperbot_ws/install/bumperbot_localization/include/**",
+        "/home/robertcowher/rosprojects/bumperbot_ws/install/bumperbot_firmware/include/**",
+        "/home/robertcowher/rosprojects/bumperbot_ws/install/bumperbot_controller/include/**",
+        "/opt/ros/jazzy/include/**",
+        "/home/robertcowher/rosprojects/bumperbot_ws/src/bumperbot_controller/include/**",
+        "/home/robertcowher/rosprojects/bumperbot_ws/src/bumperbot_cpp_examples/include/**",
+        "/home/robertcowher/rosprojects/bumperbot_ws/src/bumperbot_firmware/include/**",
+        "/home/robertcowher/rosprojects/bumperbot_ws/src/bumperbot_localization/include/**",
+        "/home/robertcowher/rosprojects/bumperbot_ws/src/bumperbot_mapping/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
