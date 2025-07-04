@@ -28,13 +28,15 @@ private:
 	
 	double kp_;
 	double kd_;
-	double step_size;
+	double step_size_;
 	double max_linear_velocity_;
 	double max_angular_velocity_;
 	nav_msgs::msg::Path global_plan_;
 
 	void controlLoop();
 	void pathCallback(const nav_msgs::msg::Path::SharedPtr path);
+
+	bool transformPlan(const std::string & frame);
 			
 // End of PDMotionPlanner Class
 };
