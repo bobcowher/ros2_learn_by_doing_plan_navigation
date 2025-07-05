@@ -18,7 +18,8 @@ namespace bumperbot_motion
 {
 
 PDMotionPlanner::PDMotionPlanner() : Node("pd_motion_planner_node"),
-	kp_(2.0), kd_(0.1), step_size_(0.2), max_linear_velocity_(0.3), max_angular_velocity_(1.0)
+	kp_(2.0), kd_(0.1), step_size_(0.2), max_linear_velocity_(0.3), max_angular_velocity_(1.0),
+	prev_angular_error_(0.0), prev_linear_error_(0.0)
 {
 	declare_parameter<double>("kp", kp_);	
 	declare_parameter<double>("kd", kd_);	
@@ -48,7 +49,7 @@ PDMotionPlanner::PDMotionPlanner() : Node("pd_motion_planner_node"),
 	control_loop_ = create_wall_timer(std::chrono::milliseconds(100), 
 			                  std::bind(&PDMotionPlanner::controlLoop, 
 					  this));
-
+	last_cycle_time_ = get_clock()->now();
 		
 }		
 
@@ -80,8 +81,13 @@ void PDMotionPlanner::controlLoop()
 		return;
 	} 
 
+	geometry_msgs::msg::PoseStamped robot_pose_stamped;
+	robot_pose_stamped.header.frame_id = robot_pose.header.frame_id;
+	robot_pose_stamped.pose.position.x = robot_pose.transform.translation.x;
+	robot_pose_stamped.pose.position.y = robot_pose.transform.translation.y;
+	robot_pose_stamped.pose.orientation = robot_pose.transform.rotation;
 
-
+	auto next_psoe = getNextPose(robot_pose_stamped);
 }
 
 bool PDMotionPlanner::transformPlan(const std::string & frame)
@@ -111,7 +117,14 @@ bool PDMotionPlanner::transformPlan(const std::string & frame)
 }
 
 
-// End of namespace bumperbot_motion
+geometry_msgs::msg::PoseStamped PDMotionPlanner::getNextPose(const geometry_msgs::msg::PoseStamped & robot_pose)
+{
+	auto next_pose = global_plan_.poses.back();
+	
+
+}
+
+//End of namespace bumperbot_motion
 }
 
 int main(int argc, char **argv)
