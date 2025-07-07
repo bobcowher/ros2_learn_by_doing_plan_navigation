@@ -1,12 +1,15 @@
 #include "bumperbot_motion/pd_motion_planner.hpp"
+#include <algorithm>
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include <chrono>
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <rclcpp/executors.hpp>
 #include <rclcpp/logging.hpp>
 #include <rclcpp/utilities.hpp>
+#include <tf2/LinearMath/Transform.hpp>
 #include <tf2/convert.hpp>
 #include <tf2/exceptions.hpp>
 #include <tf2/time.hpp>
@@ -87,7 +90,53 @@ void PDMotionPlanner::controlLoop()
 	robot_pose_stamped.pose.position.y = robot_pose.transform.translation.y;
 	robot_pose_stamped.pose.orientation = robot_pose.transform.rotation;
 
-	auto next_psoe = getNextPose(robot_pose_stamped);
+	auto next_pose = getNextPose(robot_pose_stamped);
+	
+	double dx = next_pose.pose.position.x - robot_pose_stamped.pose.position.x;
+	double dy = next_pose.pose.position.y - robot_pose_stamped.pose.position.y;
+
+	RCLCPP_INFO(get_logger(), "Dx: %g", dx);
+	RCLCPP_INFO(get_logger(), "Dy: %g", dy);
+
+	double distance = std::sqrt(dx * dx + dy * dy);
+	
+	RCLCPP_INFO(get_logger(), "Distance: %g", distance);
+
+	if(distance <= 0.1){
+		RCLCPP_INFO(get_logger(), "Goal Reached!");
+		global_plan_.poses.clear(); // Clear to accept the next goal. 
+		return;
+	}
+
+	next_pose_pub_->publish(next_pose);
+
+	// Calculate the Motion Planner Command
+	tf2::Transform robot_tf, next_pose_tf, next_pose_robot_tf;
+	tf2::fromMsg(robot_pose_stamped.pose, robot_tf);
+	tf2::fromMsg(next_pose.pose, next_pose_tf); 
+
+	next_pose_robot_tf = robot_tf.inverse() * next_pose_tf;
+
+	double dt = (get_clock()->now() - last_cycle_time_).seconds();
+	
+	double linear_error = next_pose_robot_tf.getOrigin().getX();
+	double angular_error = next_pose_robot_tf.getOrigin().getY();
+
+	double linear_error_derivative = (linear_error - prev_linear_error_) / dt;
+	double angular_error_derivative = (angular_error - prev_angular_error_) / dt;
+
+	geometry_msgs::msg::Twist cmd_vel;
+	cmd_vel.linear.x = std::clamp(kp_ * linear_error + kd_ * linear_error_derivative, -max_linear_velocity_, max_linear_velocity_);
+	cmd_vel.angular.z = std::clamp(kp_ * angular_error + kd_ * angular_error_derivative, -max_angular_velocity_, max_angular_velocity_);
+
+	last_cycle_time_ = get_clock()->now();
+	
+	prev_angular_error_ = angular_error;
+	prev_linear_error_ = linear_error;
+
+	cmd_pub_->publish(cmd_vel); // Finally send the command
+
+		
 }
 
 bool PDMotionPlanner::transformPlan(const std::string & frame)
@@ -121,7 +170,20 @@ geometry_msgs::msg::PoseStamped PDMotionPlanner::getNextPose(const geometry_msgs
 {
 	auto next_pose = global_plan_.poses.back();
 	
+	for(auto pose_it = global_plan_.poses.rbegin(); pose_it != global_plan_.poses.rend(); ++pose_it){
+		double dx = pose_it->pose.position.x - robot_pose.pose.position.x;
+		double dy = pose_it->pose.position.y - robot_pose.pose.position.y;
+		double distance = std::sqrt(dx * dx + dy * dy);
+		
+		if(distance > step_size_){
+			next_pose = *pose_it;
+		} else {
+			break;
+		}
 
+	}
+
+	return next_pose;
 }
 
 //End of namespace bumperbot_motion
