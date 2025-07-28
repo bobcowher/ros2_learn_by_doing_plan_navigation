@@ -31,7 +31,7 @@ AStarPlanner::AStarPlanner() : Node("a_star_node")
 
 	map_qos.durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
 	map_sub_ = create_subscription<nav_msgs::msg::OccupancyGrid>(
-			"/map", 
+			"/costmap", 
 			map_qos, 
 			std::bind(&AStarPlanner::mapCallback, this, std::placeholders::_1));
 	pose_sub_ = create_subscription<geometry_msgs::msg::PoseStamped>(
@@ -131,9 +131,10 @@ nav_msgs::msg::Path AStarPlanner::plan(const geometry_msgs::msg::Pose & start, c
 				     visited_nodes.end(), 
 				     new_node) == visited_nodes.end() &&
 				     poseOnMap(new_node) &&
-				     map_->data.at(poseToCell(new_node)) == 0)
+				     map_->data.at(poseToCell(new_node)) < 90 &&
+				     map_->data.at(poseToCell(new_node)) >= 0)
 			{
-				new_node.cost = active_node.cost + 1;
+				new_node.cost = active_node.cost + 1 + map_->data.at(poseToCell(new_node));
 				new_node.heuristic = manhattanDistance(new_node, goal_node);
 				new_node.prev = std::make_shared<GraphNode>(active_node);
 				pending_nodes.push(new_node);

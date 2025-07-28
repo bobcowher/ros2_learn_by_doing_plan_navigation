@@ -1,4 +1,5 @@
 #!/bin/bash
+conda deactivate
 
 echo "Cleaning up project..."
 rm -f compile_commands.json
