@@ -4,3 +4,4 @@ log
 .cache
 .clangd
 __init__.py
+compile_commands.json
