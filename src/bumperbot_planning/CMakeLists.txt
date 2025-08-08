@@ -21,7 +21,7 @@ ament_python_install_package(${PROJECT_NAME})
 include_directories(include)
 include_directories(/usr/include)
 
-add_library(dijkstra_planner src/dijkstra_planner.cpp)
+add_library(dijkstra_planner SHARED src/dijkstra_planner.cpp)
 ament_target_dependencies(dijkstra_planner rclcpp std_msgs geometry_msgs nav_msgs tf2_ros nav2_core nav2_costmap_2d nav2_util pluginlib)
 
 add_executable(a_star_planner src/a_star_planner.cpp)
