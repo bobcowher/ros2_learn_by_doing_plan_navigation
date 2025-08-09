@@ -3,6 +3,8 @@
 #include <memory>
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/subscription.hpp>
+#include <rclcpp_action/client.hpp>
+#include "rclcpp_action/rclcpp_action.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
 #include "nav_msgs/msg/path.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
@@ -13,6 +15,7 @@
 #include "nav2_core/global_planner.hpp"
 #include "nav2_costmap_2d/costmap_2d_ros.hpp"
 #include "nav2_util/lifecycle_node.hpp"
+#include "nav2_msgs/action/smooth_path.hpp"
 
 namespace bumperbot_planning
 {
@@ -73,6 +76,8 @@ private:
 	nav2_util::LifecycleNode::SharedPtr node_;
 	nav2_costmap_2d::Costmap2D * costmap_;
 	std::string global_frame_, name_;
+
+	rclcpp_action::Client<nav2_msgs::action::SmoothPath>::SharedPtr smooth_client_;
 
 	void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr map);
 	void goalCallback(const geometry_msgs::msg::PoseStamped::SharedPtr pose);

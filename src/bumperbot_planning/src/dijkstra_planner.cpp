@@ -2,11 +2,15 @@
 #include "geometry_msgs/msg/pose.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
+#include "nav2_msgs/action/smooth_path.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
+#include <chrono>
 #include <cstdint>
 #include <functional>
+#include <future>
 #include <memory>
 #include <rclcpp/executors.hpp>
+#include <rclcpp_action/client.hpp>
 #include <rmw/types.h>
 #include <tf2/exceptions.hpp>
 #include <tf2/time.hpp>
@@ -32,6 +36,10 @@ void DijkstraPlanner::configure(const rclcpp_lifecycle::LifecycleNode::WeakPtr &
 	tf_ = tf;
 	costmap_ = costmap_ros->getCostmap();
 	global_frame_ = costmap_ros->getGlobalFrameID();
+	smooth_client_ = rclcpp_action::create_client<nav2_msgs::action::SmoothPath>(node_, "smooth_path");
+	if(!smooth_client_->wait_for_action_server(std::chrono::seconds(3))){
+		RCLCPP_ERROR(node_->get_logger(), "Action server not available after waiting");
+	}
 }
 
 void DijkstraPlanner::cleanup()
@@ -111,6 +119,26 @@ nav_msgs::msg::Path DijkstraPlanner::createPlan(const geometry_msgs::msg::PoseSt
 	}
 
 	std::reverse(path.poses.begin(), path.poses.end());
+
+	nav2_msgs::action::SmoothPath::Goal path_smooth;
+	path_smooth.path = path;
+	path_smooth.check_for_collisions = false;
+	path_smooth.smoother_id = "simple_smoother";
+	path_smooth.max_smoothing_duration.sec = 10;
+	auto future = smooth_client_->async_send_goal(path_smooth);
+	if(future.wait_for(std::chrono::seconds(3)) == std::future_status::ready){
+		auto goal_handle = future.get();
+		if(goal_handle){
+			auto result_future = smooth_client_->async_get_result(goal_handle);
+			if(result_future.wait_for(std::chrono::seconds(3)) == std::future_status::ready){
+				auto result_path = result_future.get();
+				if(result_path.code == rclcpp_action::ResultCode::SUCCEEDED){
+					path = result_path.result->path;
+				}
+			}
+		}
+	}
+
 	return path;
 
 }
