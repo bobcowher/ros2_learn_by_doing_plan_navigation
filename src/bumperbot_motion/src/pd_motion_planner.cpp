@@ -15,109 +15,106 @@
 #include <tf2/time.hpp>
 #include <tf2_ros/transform_listener.h>
 #include "geometry_msgs/msg/transform_stamped.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+#include "nav2_util/node_utils.hpp"
+
 
 namespace bumperbot_motion
 {
 
-PDMotionPlanner::PDMotionPlanner() : Node("pd_motion_planner_node"),
-	kp_(2.0), kd_(0.1), step_size_(0.2), max_linear_velocity_(0.3), max_angular_velocity_(1.0),
-	prev_angular_error_(0.0), prev_linear_error_(0.0)
+void PDMotionPlanner::configure(
+	const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
+	std::string name,
+	std::shared_ptr<tf2_ros::Buffer> tf,
+	std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros)
 {
-	declare_parameter<double>("kp", kp_);	
-	declare_parameter<double>("kd", kd_);	
-	declare_parameter<double>("step_size", step_size_);	
-	declare_parameter<double>("max_linear_velocity", max_linear_velocity_);	
-	declare_parameter<double>("max_angular_velocity", max_angular_velocity_);	
+	node_ = parent;	
+	auto node = node_.lock();
+	costmap_ros_ = costmap_ros;
+	tf_ = tf;
+	plugin_name_ = name;
 
-	kp_ = get_parameter("kp").as_double();
-	kd_ = get_parameter("kd").as_double();
-	step_size_ = get_parameter("step_size").as_double();
-	max_linear_velocity_ = get_parameter("max_linear_velocity").as_double();
-	max_angular_velocity_ = get_parameter("max_angular_velocity").as_double();
+	logger_ = node->get_logger();
+	clock_ = node->get_clock();
 
-	path_sub_ = create_subscription<nav_msgs::msg::Path>(
-			"/a_star/path", 10, 
-			std::bind(&PDMotionPlanner::pathCallback, this, std::placeholders::_1));
+	nav2_util::declare_parameter_if_not_declared(node, plugin_name_ + ".kp", rclcpp::ParameterValue(2.0));
+	nav2_util::declare_parameter_if_not_declared(node, plugin_name_ + ".kd", rclcpp::ParameterValue(0.1));
+	nav2_util::declare_parameter_if_not_declared(node, plugin_name_ + ".max_linear_velocity", rclcpp::ParameterValue(0.3));
+	nav2_util::declare_parameter_if_not_declared(node, plugin_name_ + ".max_angular_velocity", rclcpp::ParameterValue(1.0));
+	nav2_util::declare_parameter_if_not_declared(node, plugin_name_ + ".step_size", rclcpp::ParameterValue(0.2));
+	
+	node->get_parameter(plugin_name_ + ".kp", kp_);
+	node->get_parameter(plugin_name_ + ".kd", kd_);
+	node->get_parameter(plugin_name_ + ".max_linear_velocity", max_linear_velocity_);
+	node->get_parameter(plugin_name_ + ".max_angular_velocity", max_angular_velocity_);
+	node->get_parameter(plugin_name_ + ".step_size", step_size_);
 
-	cmd_pub_ = create_publisher<geometry_msgs::msg::Twist>(
-			"/cmd_vel", 10			
-			);
+	next_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("/pd/next_pose", 10);
 
-	next_pose_pub_ = create_publisher<geometry_msgs::msg::PoseStamped>("/pd/next_pose", 10);
-
-	tf_buffer_ = std::make_shared<tf2_ros::Buffer>(get_clock());
-	tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
-
-	control_loop_ = create_wall_timer(std::chrono::milliseconds(100), 
-			                  std::bind(&PDMotionPlanner::controlLoop, 
-					  this));
-	last_cycle_time_ = get_clock()->now();
-		
-}		
-
-void PDMotionPlanner::pathCallback(const nav_msgs::msg::Path::SharedPtr path)
-{
-	global_plan_ = *path;
 }
 
-void PDMotionPlanner::controlLoop()
+void PDMotionPlanner::cleanup()
 {
-	if(global_plan_.poses.empty()){
-		return;
-	}
+	RCLCPP_INFO(logger_, "Cleaning up plugin PDMotionPlanner");	
+	next_pose_pub_.reset();
+}
 
-	geometry_msgs::msg::TransformStamped robot_pose;
+void PDMotionPlanner::activate()
+{
+	RCLCPP_INFO(logger_, "Activating plugin PDMotionPlanner");
+	last_cycle_time_ = clock_->now();
+}
+
+void PDMotionPlanner::deactivate()
+{
+	RCLCPP_INFO(logger_, "Deactivating plugin PDMotionPlanner");	
+}
+
+void PDMotionPlanner::setPlan(const nav_msgs::msg::Path & path)
+{
+	global_plan_ = path;
+}
+
+void PDMotionPlanner::setSpeedLimit(const double &, const bool &)
+{
+}
+
+// void PDMotionPlanner::pathCallback(const nav_msgs::msg::Path::SharedPtr path)
+// {
+// 	global_plan_ = *path;
+// }
+
+geometry_msgs::msg::TwistStamped PDMotionPlanner::computeVelocityCommands(
+		const geometry_msgs::msg::PoseStamped & robot_pose,
+		const geometry_msgs::msg::Twist &, 
+		nav2_core::GoalChecker *)
+{
+	geometry_msgs::msg::TwistStamped cmd_vel;
+	cmd_vel.header.frame_id = robot_pose.header.frame_id;
 	
-	try{
-		robot_pose = tf_buffer_->lookupTransform("odom", "base_footprint", tf2::TimePointZero);
-	} catch(tf2::TransformException &ex){
-		RCLCPP_WARN(get_logger(), "Could not transform : %s", ex.what());
-		return;
+	if(global_plan_.poses.empty()){
+		RCLCPP_ERROR(logger_, "Empty Plan!");
+		return cmd_vel;
 	}
-
-	//RCLCPP_INFO(get_logger(), "frame_id Robot Pose: %s", robot_pose.header.frame_id.c_str());
-	//RCLCPP_INFO(get_logger(), "frame_id Global Plan %s", global_plan_.header.frame_id.c_str());
 	
 	if(!transformPlan(robot_pose.header.frame_id)){
-		RCLCPP_ERROR_STREAM(get_logger(), "Unable to transform Plan in robot's frame");
-		return;
+		RCLCPP_ERROR_STREAM(logger_, "Unable to transform Plan in robot's frame");
+		return cmd_vel;
 	} 
 
-	geometry_msgs::msg::PoseStamped robot_pose_stamped;
-	robot_pose_stamped.header.frame_id = robot_pose.header.frame_id;
-	robot_pose_stamped.pose.position.x = robot_pose.transform.translation.x;
-	robot_pose_stamped.pose.position.y = robot_pose.transform.translation.y;
-	robot_pose_stamped.pose.orientation = robot_pose.transform.rotation;
-
-	auto next_pose = getNextPose(robot_pose_stamped);
+	auto next_pose = getNextPose(robot_pose);
 	
-	double dx = next_pose.pose.position.x - robot_pose_stamped.pose.position.x;
-	double dy = next_pose.pose.position.y - robot_pose_stamped.pose.position.y;
-
-	RCLCPP_INFO(get_logger(), "Dx: %g", dx);
-	RCLCPP_INFO(get_logger(), "Dy: %g", dy);
-
-	double distance = std::sqrt(dx * dx + dy * dy);
-	
-	RCLCPP_INFO(get_logger(), "Distance: %g", distance);
-
-	if(distance <= 0.1){
-		RCLCPP_INFO(get_logger(), "Goal Reached!");
-		global_plan_.poses.clear(); // Clear to accept the next goal. 
-		return;
-	}
-
 	next_pose_pub_->publish(next_pose);
 
 	// Calculate the Motion Planner Command
 	tf2::Transform robot_tf, next_pose_tf, next_pose_robot_tf;
-	tf2::fromMsg(robot_pose_stamped.pose, robot_tf);
+	tf2::fromMsg(robot_pose.pose, robot_tf);
 	tf2::fromMsg(next_pose.pose, next_pose_tf); 
 
 	next_pose_robot_tf = robot_tf.inverse() * next_pose_tf;
 
-	double dt = (get_clock()->now() - last_cycle_time_).seconds();
+	double dt = (clock_->now() - last_cycle_time_).seconds();
 	
 	double linear_error = next_pose_robot_tf.getOrigin().getX();
 	double angular_error = next_pose_robot_tf.getOrigin().getY();
@@ -125,18 +122,15 @@ void PDMotionPlanner::controlLoop()
 	double linear_error_derivative = (linear_error - prev_linear_error_) / dt;
 	double angular_error_derivative = (angular_error - prev_angular_error_) / dt;
 
-	geometry_msgs::msg::Twist cmd_vel;
-	cmd_vel.linear.x = std::clamp(kp_ * linear_error + kd_ * linear_error_derivative, -max_linear_velocity_, max_linear_velocity_);
-	cmd_vel.angular.z = std::clamp(kp_ * angular_error + kd_ * angular_error_derivative, -max_angular_velocity_, max_angular_velocity_);
+	cmd_vel.twist.linear.x = std::clamp(kp_ * linear_error + kd_ * linear_error_derivative, -max_linear_velocity_, max_linear_velocity_);
+	cmd_vel.twist.angular.z = std::clamp(kp_ * angular_error + kd_ * angular_error_derivative, -max_angular_velocity_, max_angular_velocity_);
 
-	last_cycle_time_ = get_clock()->now();
+	last_cycle_time_ = clock_->now();
 	
 	prev_angular_error_ = angular_error;
 	prev_linear_error_ = linear_error;
-
-	cmd_pub_->publish(cmd_vel); // Finally send the command
-
-		
+	
+	return cmd_vel;
 }
 
 bool PDMotionPlanner::transformPlan(const std::string & frame)
@@ -148,9 +142,9 @@ bool PDMotionPlanner::transformPlan(const std::string & frame)
 	geometry_msgs::msg::TransformStamped transform;
 	
 	try {
-		transform = tf_buffer_->lookupTransform(frame, global_plan_.header.frame_id, tf2::TimePointZero);
+		transform = tf_->lookupTransform(frame, global_plan_.header.frame_id, tf2::TimePointZero);
 	} catch(tf2::LookupException & ex){
-		RCLCPP_ERROR_STREAM(get_logger(), "Unable to transform plan from frame " << 
+		RCLCPP_ERROR_STREAM(logger_, "Unable to transform plan from frame " << 
 				    global_plan_.header.frame_id << " to " << frame);
 		return false;
 	}
@@ -189,12 +183,5 @@ geometry_msgs::msg::PoseStamped PDMotionPlanner::getNextPose(const geometry_msgs
 //End of namespace bumperbot_motion
 }
 
-int main(int argc, char **argv)
-{
-	rclcpp::init(argc, argv);
-	auto node = std::make_shared<bumperbot_motion::PDMotionPlanner>();
-	rclcpp::spin(node);
-	rclcpp::shutdown();
-
-	return 0;
-}
+#include "pluginlib/class_list_macros.hpp"
+PLUGINLIB_EXPORT_CLASS(bumperbot_motion::PDMotionPlanner, nav2_core::Controller)
