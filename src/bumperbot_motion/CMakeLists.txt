@@ -21,8 +21,8 @@ include_directories(include)
 add_library(pd_motion_planner SHARED src/pd_motion_planner.cpp)
 ament_target_dependencies(pd_motion_planner rclcpp nav_msgs tf2_ros geometry_msgs tf2_geometry_msgs nav2_core nav2_costmap_2d nav2_util pluginlib)
 
-add_executable(pure_pursuit src/pure_pursuit.cpp)
-ament_target_dependencies(pure_pursuit rclcpp nav_msgs tf2_ros geometry_msgs tf2_geometry_msgs)
+add_library(pure_pursuit SHARED src/pure_pursuit.cpp)
+ament_target_dependencies(pure_pursuit rclcpp nav_msgs tf2_ros geometry_msgs tf2_geometry_msgs nav2_core nav2_costmap_2d nav2_util pluginlib)
 
 # find dependencies
 # uncomment the following section in order to fill in
@@ -36,12 +36,8 @@ install(
 )
 
 install(TARGETS
-  pure_pursuit
-  DESTINATION lib/${PROJECT_NAME}
-)
-
-install(TARGETS
   pd_motion_planner
+  pure_pursuit
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}

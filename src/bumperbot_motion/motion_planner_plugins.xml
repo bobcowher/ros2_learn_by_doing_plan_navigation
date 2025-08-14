@@ -4,4 +4,9 @@
 			
 		</class>
 	</library>
+	<library path="pure_pursuit">
+		<class type="bumperbot_motion::PurePursuit" base_class_type="nav2_core::Controller">
+			
+		</class>
+	</library>
 </class_libraries>
