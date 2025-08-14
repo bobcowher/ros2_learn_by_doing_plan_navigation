@@ -70,7 +70,7 @@ void PurePursuit::setPlan(const nav_msgs::msg::Path & path)
 	global_plan_ = path;
 }
 
-void setSpeedLimit(const double &, const bool &)
+void PurePursuit::setSpeedLimit(const double &, const bool &)
 {
 	
 }
