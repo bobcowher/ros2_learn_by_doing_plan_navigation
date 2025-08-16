@@ -14,7 +14,7 @@ def generate_launch_description():
     
     use_sim_time = LaunchConfiguration("use_sim_time")
 
-    lifecycle_nodes = ["controller_server", "planner_server", "smoother_server"]
+    lifecycle_nodes = ["controller_server", "planner_server", "smoother_server", "bt_navigator"]
 
     nav2_controller_server = Node(
         package="nav2_controller",
@@ -60,6 +60,21 @@ def generate_launch_description():
             {"use_sim_time": use_sim_time}
         ]
     )
+    
+    nav2_bt_navigator = Node(
+        package="nav2_bt_navigator",
+        executable="bt_navigator",
+        name="bt_navigator",
+        output="screen",
+        parameters=[
+            os.path.join(
+                get_package_share_directory("bumperbot_navigation"),
+                "config",
+                "bt_navigator.yaml"
+            ),
+            {"use_sim_time": use_sim_time}
+        ]
+    )
 
     nav2_lifecycle_manager = Node(
         package="nav2_lifecycle_manager",
@@ -78,5 +93,6 @@ def generate_launch_description():
         nav2_controller_server,
         nav2_planner_server,
         nav2_smoother_server,
+        nav2_bt_navigator,
         nav2_lifecycle_manager
     ])
