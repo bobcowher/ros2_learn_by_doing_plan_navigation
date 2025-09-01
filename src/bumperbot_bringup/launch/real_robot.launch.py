@@ -22,19 +22,15 @@ def generate_launch_description():
             "hardware_interface.launch.py"
         ),
     )
-
-    laser_driver = Node(
-            package="rplidar_ros",
-            executable="rplidar_node",
-            name="rplidar_node",
-            parameters=[os.path.join(
-                get_package_share_directory("bumperbot_bringup"),
-                "config",
-                "rplidar_a1.yaml"
-            )],
-            output="screen"
-    )
     
+    laser_driver = IncludeLaunchDescription(
+        os.path.join(
+            get_package_share_directory("bumperbot_lidar"),
+            "launch",
+            "rplidar.launch.py"
+        ),
+    )
+
     controller = IncludeLaunchDescription(
         os.path.join(
             get_package_share_directory("bumperbot_controller"),
