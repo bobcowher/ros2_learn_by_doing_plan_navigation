@@ -177,6 +177,12 @@ hardware_interface::return_type BumperbotInterface::write(const rclcpp::Time &,
   char left_wheel_sign = velocity_commands_.at(1) >= 0 ? 'p' : 'n';
   std::string compensate_zeros_right = "";
   std::string compensate_zeros_left = "";
+  
+  RCLCPP_INFO(rclcpp::get_logger("BumperbotInterface"), 
+            "Left wheel velocity: %.3f", velocity_commands_.at(0));
+  RCLCPP_INFO(rclcpp::get_logger("BumperbotInterface"), 
+            "Right wheel velocity: %.3f", velocity_commands_.at(1));
+
   if(std::abs(velocity_commands_.at(0)) < 10.0)
   {
     compensate_zeros_right = "0";
