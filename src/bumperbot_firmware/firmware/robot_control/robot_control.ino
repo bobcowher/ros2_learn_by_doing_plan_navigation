@@ -69,6 +69,8 @@ void setup() {
 
   rightMotor.SetMode(AUTOMATIC);
   leftMotor.SetMode(AUTOMATIC);
+  rightMotor.SetOutputLimits(-100, 100);
+  leftMotor.SetOutputLimits(-100, 100);
   Serial.begin(115200);
 
   // Init encoders
@@ -189,6 +191,7 @@ void loop() {
 
     String encoder_read = "r" + right_wheel_sign + String(right_wheel_meas_vel) + ",l" + left_wheel_sign + String(left_wheel_meas_vel) + ",";
     Serial.println(encoder_read);
+    
     last_millis = current_millis;
     right_encoder_counter = 0;
     left_encoder_counter = 0;
