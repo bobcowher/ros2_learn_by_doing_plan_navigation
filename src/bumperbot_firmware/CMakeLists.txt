@@ -15,15 +15,7 @@ find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(PkgConfig)
-
-include_directories(/usr/include)
-
-#target_link_libraries(simple_serial_receiver PRIVATE serial)
-#target_link_libraries(simple_serial_transmitter PRIVATE serial)
-
 pkg_check_modules(SERIAL libserial)
-
-
 
 ament_python_install_package(${PROJECT_NAME})
 

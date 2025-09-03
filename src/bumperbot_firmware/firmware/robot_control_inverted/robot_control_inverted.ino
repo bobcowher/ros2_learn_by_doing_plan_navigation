@@ -1,18 +1,18 @@
 #include <PID_v1.h>
 
 // L298N H-Bridge Connection PINs
-#define L298N_enA 9  // PWM
-#define L298N_enB 11  // PWM
-#define L298N_in4 8  // Dir Motor B
-#define L298N_in3 7  // Dir Motor B
-#define L298N_in2 13  // Dir Motor A
-#define L298N_in1 12  // Dir Motor A
+#define L298N_enA 11  // PWM
+#define L298N_enB 9  // PWM
+#define L298N_in4 13  // Dir Motor B
+#define L298N_in3 12  // Dir Motor B
+#define L298N_in2 8  // Dir Motor A
+#define L298N_in1 7  // Dir Motor A
 
 // Wheel Encoders Connection PINs
-#define right_encoder_phaseA 3  // Interrupt 
-#define right_encoder_phaseB 5  
-#define left_encoder_phaseA 2   // Interrupt
-#define left_encoder_phaseB 4
+#define right_encoder_phaseA 2  // Interrupt 
+#define right_encoder_phaseB 4  
+#define left_encoder_phaseA 3   // Interrupt
+#define left_encoder_phaseB 5
 
 // Encoders
 unsigned int right_encoder_counter = 0;
@@ -62,10 +62,10 @@ void setup() {
   pinMode(L298N_in4, OUTPUT);
 
   // Set Motor Rotation Direction
-  digitalWrite(L298N_in1, HIGH);
-  digitalWrite(L298N_in2, LOW);
-  digitalWrite(L298N_in3, HIGH);
-  digitalWrite(L298N_in4, LOW);
+  digitalWrite(L298N_in1, LOW);
+  digitalWrite(L298N_in2, HIGH);
+  digitalWrite(L298N_in3, LOW);
+  digitalWrite(L298N_in4, HIGH);
 
   rightMotor.SetMode(AUTOMATIC);
   leftMotor.SetMode(AUTOMATIC);
