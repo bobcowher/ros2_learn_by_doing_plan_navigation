@@ -43,16 +43,27 @@ double right_wheel_cmd = 0.0;             // 0-255
 double left_wheel_cmd = 0.0;              // 0-255
 // Tuning
 double Kp_r = 11.5;
-double Ki_r = 7.5;
+double Ki_r = 2.0;
 double Kd_r = 0.1;
 double Kp_l = 12.8;
-double Ki_l = 8.3;
+double Ki_l = 2.0;
 double Kd_l = 0.1;
 // Controller
 PID rightMotor(&right_wheel_meas_vel, &right_wheel_cmd, &right_wheel_cmd_vel, Kp_r, Ki_r, Kd_r, DIRECT);
 PID leftMotor(&left_wheel_meas_vel, &left_wheel_cmd, &left_wheel_cmd_vel, Kp_l, Ki_l, Kd_l, DIRECT);
 
+
+
 void setup() {
+  // Set motor modes.
+  rightMotor.SetMode(AUTOMATIC);
+  rightMotor.SetOutputLimits(0, 255);
+  rightMotor.SetSampleTime(100);
+
+  leftMotor.SetMode(AUTOMATIC);
+  leftMotor.SetOutputLimits(0, 255);
+  leftMotor.SetSampleTime(100);
+
   // Init L298N H-Bridge Connection PINs
   pinMode(L298N_enA, OUTPUT);
   pinMode(L298N_enB, OUTPUT);
@@ -67,8 +78,6 @@ void setup() {
   digitalWrite(L298N_in3, HIGH);
   digitalWrite(L298N_in4, LOW);
 
-  rightMotor.SetMode(AUTOMATIC);
-  leftMotor.SetMode(AUTOMATIC);
   Serial.begin(115200);
 
   // Init encoders
@@ -178,18 +187,13 @@ void loop() {
     leftMotor.Compute();
 
     // Ignore commands smaller than inertia
-    if(right_wheel_cmd_vel == 0.0)
-    {
-      right_wheel_cmd = 0.0;
-      rightMotor.SetMode(MANUAL);
-      rightMotor.SetMode(AUTOMATIC);
-    }
-    if(left_wheel_cmd_vel == 0.0)
-    {
-      left_wheel_cmd = 0.0;
-      leftMotor.SetMode(MANUAL);
-      leftMotor.SetMode(AUTOMATIC);
-    }
+    if(right_wheel_cmd_vel == 0.0) {
+        right_wheel_cmd = 0;
+    } 
+
+    if(left_wheel_cmd_vel == 0.0) {
+        left_wheel_cmd = 0;
+    } 
 
     String encoder_read = "r" + right_wheel_sign + String(right_wheel_meas_vel) + ",l" + left_wheel_sign + String(left_wheel_meas_vel) + ",";
     Serial.println(encoder_read);
