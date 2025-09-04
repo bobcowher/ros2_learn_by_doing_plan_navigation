@@ -181,10 +181,14 @@ void loop() {
     if(right_wheel_cmd_vel == 0.0)
     {
       right_wheel_cmd = 0.0;
+      rightMotor.SetMode(MANUAL);
+      rightMotor.SetMode(AUTOMATIC);
     }
     if(left_wheel_cmd_vel == 0.0)
     {
       left_wheel_cmd = 0.0;
+      leftMotor.SetMode(MANUAL);
+      leftMotor.SetMode(AUTOMATIC);
     }
 
     String encoder_read = "r" + right_wheel_sign + String(right_wheel_meas_vel) + ",l" + left_wheel_sign + String(left_wheel_meas_vel) + ",";
