@@ -186,6 +186,13 @@ void loop() {
     rightMotor.Compute();
     leftMotor.Compute();
 
+    if(right_wheel_cmd_vel > 1.0 && left_wheel_cmd_vel > 1.0 && 
+       is_right_wheel_forward != is_left_wheel_forward) {
+        // Spin command detected - ensure minimum PWM
+        if(right_wheel_cmd < 60) right_wheel_cmd = 60;
+        if(left_wheel_cmd < 60) left_wheel_cmd = 60;
+    }
+
     // Ignore commands smaller than inertia
     if(right_wheel_cmd_vel == 0.0) {
         right_wheel_cmd = 0;
