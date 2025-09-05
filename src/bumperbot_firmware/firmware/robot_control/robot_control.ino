@@ -180,19 +180,23 @@ void loop() {
   unsigned long current_millis = millis();
   if(current_millis - last_millis >= interval)
   {
+    // Replace lines 173-175 with:
     right_wheel_meas_vel = (10 * right_encoder_counter * (60.0/385.0)) * 0.10472;
     left_wheel_meas_vel = (10 * left_encoder_counter * (60.0/385.0)) * 0.10472;
-    
-    rightMotor.Compute();
-    leftMotor.Compute();
 
-    if(right_wheel_cmd_vel > 1.0 && left_wheel_cmd_vel > 1.0 && 
-       is_right_wheel_forward != is_left_wheel_forward) {
-        // Spin command detected - ensure minimum PWM
-        if(right_wheel_cmd < 60) right_wheel_cmd = 60;
-        if(left_wheel_cmd < 60) left_wheel_cmd = 60;
+    // Check for spin condition BEFORE compute
+    bool is_spin = (right_wheel_cmd_vel > 0.5 && left_wheel_cmd_vel > 0.5 && 
+                    is_right_wheel_forward != is_left_wheel_forward);
+
+    if(is_spin) {
+        // Direct control for spins - bypass PID completely
+        right_wheel_cmd = min(255.0, right_wheel_cmd_vel * 50);  
+        left_wheel_cmd = min(255.0, left_wheel_cmd_vel * 50);
+    } else {
+        // Normal PID for forward/backward
+        rightMotor.Compute();
+        leftMotor.Compute();
     }
-
     // Ignore commands smaller than inertia
     if(right_wheel_cmd_vel == 0.0) {
         right_wheel_cmd = 0;
