@@ -15,3 +15,6 @@ colcon build --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 
 cp build/compile_commands.json .
 
+# Disable if robot isn't physically connected
+arduino-cli compile --fqbn arduino:avr:uno ./src/bumperbot_firmware_v2/firmware/
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old ./src/bumperbot_firmware_v2/firmware/
