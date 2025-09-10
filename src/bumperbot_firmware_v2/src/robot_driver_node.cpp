@@ -40,20 +40,17 @@ public:
     
 private:
     void cmd_vel_callback(const geometry_msgs::msg::Twist::SharedPtr msg) {
-        // Convert ROS Twist to motor speeds
-        double linear = msg->linear.x;   // m/s forward/backward
-        double angular = msg->angular.z; // rad/s rotation
-        
-        // Simple differential drive conversion
-        // You'll need to tune these scale factors for your robot
-        double left_speed = (linear - angular * 0.5) * 100.0;  // Scale to motor range
-        double right_speed = (linear + angular * 0.5) * 100.0;
-        
-        // Send to robot
-        robot_.moveRobot(static_cast<int>(left_speed), static_cast<int>(right_speed));
-        
+       
+	double linear = msg->linear.x;   
+	double angular = msg->angular.z; 
+    
+	double left_velocity = linear - (angular * 0.075);   // Estimate wheelbase for now
+	double right_velocity = linear + (angular * 0.075);
+    
+	robot_.moveRobotVelocity(left_velocity, right_velocity);
+	
         RCLCPP_DEBUG(this->get_logger(), "Sending: left=%d, right=%d", 
-                    static_cast<int>(left_speed), static_cast<int>(right_speed));
+                    static_cast<int>(left_velocity), static_cast<int>(right_velocity));
     }
 };
 

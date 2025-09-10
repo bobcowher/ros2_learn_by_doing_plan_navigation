@@ -10,6 +10,7 @@
 
 #include "bumperbot_firmware_v2/robot_controller.hpp"
 
+
 RobotController::RobotController() : serial_fd(-1) {}
 
 RobotController::~RobotController() {
@@ -53,6 +54,18 @@ bool RobotController::connect(const std::string& port) {
 
 	std::cerr << "Timeout waiting for Arduino" << std::endl;
 	return false;
+}
+
+int RobotController::velocityToMotorSpeed(double velocity_ms) {
+    // velocity_ms / MAX_VELOCITY = motor_speed / 255
+    int motor_speed = (velocity_ms / MAX_VELOCITY) * 255;
+    return std::max(-255, std::min(255, motor_speed));
+}
+
+void RobotController::moveRobotVelocity(double left_vel_ms, double right_vel_ms) {
+    int left_speed = velocityToMotorSpeed(left_vel_ms);
+    int right_speed = velocityToMotorSpeed(right_vel_ms);
+    moveRobot(left_speed, right_speed);  // Use existing method
 }
 
 std::string RobotController::readResponse() {
