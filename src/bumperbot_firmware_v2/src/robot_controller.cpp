@@ -11,7 +11,7 @@
 #include "bumperbot_firmware_v2/robot_controller.hpp"
 
 
-RobotController::RobotController() : serial_fd(-1) {}
+RobotController::RobotController() : serial_fd(-1), last_left_velocity(0), last_right_velocity(0) {}
 
 RobotController::~RobotController() {
 	disconnect();
@@ -62,9 +62,43 @@ int RobotController::velocityToMotorSpeed(double velocity_ms) {
     return std::max(-255, std::min(255, motor_speed));
 }
 
-void RobotController::moveRobotVelocity(double left_vel_ms, double right_vel_ms) {
+void RobotController::moveRobotVelocity(double target_left_vel_ms, double target_right_vel_ms) {
+    
+    double left_vel_ms = last_left_velocity;
+    double right_vel_ms = last_right_velocity;
+    double acceleration = 0.01;
+
+    if(target_left_vel_ms == 0){
+    	left_vel_ms = target_left_vel_ms;
+    } else if(last_left_velocity > target_left_vel_ms){
+	left_vel_ms -= acceleration;
+    } else if (last_left_velocity < target_left_vel_ms) {
+    	left_vel_ms += acceleration;
+    } else {
+	left_vel_ms = target_left_vel_ms;
+    }
+    
+    if(target_right_vel_ms == 0){
+    	right_vel_ms = target_right_vel_ms;
+    } else if(last_right_velocity > target_right_vel_ms){
+	right_vel_ms -= acceleration;
+    } else if (last_right_velocity < target_left_vel_ms) {
+    	right_vel_ms += acceleration;
+    } else {
+	right_vel_ms = target_right_vel_ms;
+    }
+     
     int left_speed = velocityToMotorSpeed(left_vel_ms);
     int right_speed = velocityToMotorSpeed(right_vel_ms);
+
+    last_left_velocity = left_vel_ms;
+    last_right_velocity = right_vel_ms;
+    
+    std::cout << "Left Wheel Vel: " << left_vel_ms << std::endl;
+    std::cout << "Right Wheel Vel: " << right_vel_ms << std::endl;
+    std::cout << "Left Wheel Speed: " << left_speed << std::endl;
+    std::cout << "Right Wheel Speed: " << right_speed << std::endl;
+    
     moveRobot(left_speed, right_speed);  // Use existing method
 }
 
