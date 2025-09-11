@@ -17,9 +17,9 @@ def generate_launch_description():
 
     hardware_interface = IncludeLaunchDescription(
         os.path.join(
-            get_package_share_directory("bumperbot_firmware"),
+            get_package_share_directory("bumperbot_firmware_v2"),
             "launch",
-            "hardware_interface.launch.py"
+            "robot_controller.launch.py"
         ),
     )
     
