@@ -89,8 +89,8 @@ def generate_launch_description():
         use_slam_arg,
         hardware_interface,
         laser_driver,
-        controller,
-        # joystick,
+        # controller,
+        # joystick, # Can't have double joystick publishing
         imu_driver_node,
         localization,
         slam,
