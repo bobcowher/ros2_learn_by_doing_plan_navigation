@@ -6,7 +6,7 @@ controller_server:
     min_x_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
     failure_tolerance: 0.3
-    odom_topic: /bumperbot_controller/odom
+    odom_topic: /odom
     controller_plugins: ["FollowPath"]
     goal_checker_plugins: ["general_goal_checker"]
     progress_checker_plugin: "progress_checker"
