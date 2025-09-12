@@ -89,7 +89,7 @@ def generate_launch_description():
         use_slam_arg,
         hardware_interface,
         laser_driver,
-        # controller,
+        controller,
         # joystick,
         imu_driver_node,
         localization,
