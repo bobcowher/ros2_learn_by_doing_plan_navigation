@@ -9,6 +9,9 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2 REQUIRED)
 
 # Include directories
 include_directories(include)
@@ -27,6 +30,9 @@ target_link_libraries(robot_driver_node robot_controller)
 ament_target_dependencies(robot_driver_node
   rclcpp
   geometry_msgs
+  nav_msgs
+  tf2_ros
+  tf2
 )
 
 # Install targets
