@@ -3,24 +3,17 @@ from launch import LaunchDescription
 from ament_index_python.packages import get_package_share_directory
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
-
+from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
-
     use_sim_time = LaunchConfiguration("use_sim_time")
     slam_config = LaunchConfiguration("slam_config")
-
-    ros_distro = os.environ["ROS_DISTRO"]
-    lifecycle_nodes = ["map_saver_server"]
-    if ros_distro != "humble":
-        lifecycle_nodes.append("slam_toolbox")
-
+    
     use_sim_time_arg = DeclareLaunchArgument(
         "use_sim_time",
-        default_value="true"
+        default_value="false"  # Fixed for real hardware
     )
-
+    
     slam_config_arg = DeclareLaunchArgument(
         "slam_config",
         default_value=os.path.join(
@@ -31,6 +24,7 @@ def generate_launch_description():
         description="Full path to slam yaml file to load"
     )
     
+    # Map saver - keep as lifecycle node
     nav2_map_saver = Node(
         package="nav2_map_server",
         executable="map_saver_server",
@@ -43,7 +37,8 @@ def generate_launch_description():
             {"occupied_thresh_default": 0.65},
         ],
     )
-
+    
+    # SLAM - run directly without lifecycle management
     slam_toolbox = Node(
         package="slam_toolbox",
         executable="async_slam_toolbox_node",
@@ -54,20 +49,21 @@ def generate_launch_description():
             {"use_sim_time": use_sim_time},
         ],
     )
-
+    
+    # Lifecycle manager - only manage map_saver, not SLAM
     nav2_lifecycle_manager = Node(
         package="nav2_lifecycle_manager",
         executable="lifecycle_manager",
         name="lifecycle_manager_slam",
         output="screen",
         parameters=[
-            {"node_names": lifecycle_nodes},
+            {"node_names": ["map_saver_server"]},  # Only manage map_saver
             {"use_sim_time": use_sim_time},
             {"autostart": True},
             {"bond_timeout": 10.0}
         ],
     )
-
+    
     return LaunchDescription([
         use_sim_time_arg,
         slam_config_arg,
