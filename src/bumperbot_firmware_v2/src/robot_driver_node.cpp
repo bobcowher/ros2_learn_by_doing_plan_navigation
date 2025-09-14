@@ -17,8 +17,12 @@ private:
     // Odometry state variables
     double x_ = 0.0;
     double y_ = 0.0; 
+    double linear_vel_ = 0.0;
+    double angular_vel_ = 0.0; 
     double theta_ = 0.0;
-    rclcpp::Time last_time_;
+    rclcpp::TimerBase::SharedPtr odom_timer_;
+    rclcpp::Time last_time_ = this->now();
+
     
 public:
     RobotDriverNode() : Node("robot_driver") {
@@ -34,6 +38,10 @@ public:
             return;
         }
         
+	auto odom_timer_ = this->create_wall_timer(
+	    std::chrono::milliseconds(20),  // Every 20ms
+	    std::bind(&RobotDriverNode::publishOdometry, this)  // Call this function
+);
         RCLCPP_INFO(this->get_logger(), "Robot connected on %s", serial_port_.c_str());
         
         // Subscribe to velocity commands
@@ -42,9 +50,10 @@ public:
             std::bind(&RobotDriverNode::cmd_vel_callback, this, std::placeholders::_1)
         );
 
+	updateOdometry(0.0, 0.0);
+
         odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
         tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
-        last_time_ = this->now();
         
         RCLCPP_INFO(this->get_logger(), "Robot driver node started");
     }
@@ -82,13 +91,16 @@ private:
         theta_ += angular_vel * dt;
         
         // Publish transform
-        publishOdometry(current_time, linear_vel, angular_vel);
+        // publishOdometry(current_time, linear_vel, angular_vel);
+	linear_vel_ = linear_vel;
+	angular_vel_ = angular_vel;
         last_time_ = current_time;
     }
     
-    void publishOdometry(rclcpp::Time current_time, double linear_vel, double angular_vel) {
+    void publishOdometry() {
         // TF transform
         geometry_msgs::msg::TransformStamped odom_trans;
+        rclcpp::Time current_time = this->now();
         odom_trans.header.stamp = current_time;
         odom_trans.header.frame_id = "odom";
         odom_trans.child_frame_id = "base_link";
@@ -116,8 +128,8 @@ private:
         odom.pose.pose.position.y = y_;
         odom.pose.pose.orientation = odom_trans.transform.rotation;
         
-        odom.twist.twist.linear.x = linear_vel;
-        odom.twist.twist.angular.z = angular_vel;
+        odom.twist.twist.linear.x = linear_vel_;
+        odom.twist.twist.angular.z = angular_vel_;
         
         odom_pub_->publish(odom);
     }
