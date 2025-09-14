@@ -38,7 +38,7 @@ public:
             return;
         }
         
-	auto odom_timer_ = this->create_wall_timer(
+	odom_timer_ = this->create_wall_timer(
 	    std::chrono::milliseconds(20),  // Every 20ms
 	    std::bind(&RobotDriverNode::publishOdometry, this)  // Call this function
 );
