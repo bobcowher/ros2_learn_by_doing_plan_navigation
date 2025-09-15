@@ -46,6 +46,42 @@ def generate_launch_description():
         ],
     )
 
+    # Add scan filter to clean noisy lidar data
+    scan_filter = Node(
+        package="laser_filters",
+        executable="scan_to_scan_filter_chain",
+        name="scan_filter",
+        output="screen",
+        parameters=[{
+            "scan_filter_chain": [
+                {
+                    "name": "range_filter",
+                    "type": "laser_filters/LaserScanRangeFilter",
+                    "params": {
+                        "use_message_range_limits": False,
+                        "lower_threshold": 0.2,  # minimum valid range
+                        "upper_threshold": 3.0,  # maximum valid range
+                        "lower_replacement_value": .nan,
+                        "upper_replacement_value": .nan,
+                    }
+                },
+                {
+                    "name": "intensity_filter", 
+                    "type": "laser_filters/LaserScanIntensityFilter",
+                    "params": {
+                        "lower_threshold": 30.0,  # filter low intensity readings
+                        "upper_threshold": 100.0,
+                        "disp_histogram": False,
+                    }
+                }
+            ]
+        }],
+        remappings=[
+            ("scan", "/scan_raw"),
+            ("scan_filtered", "/scan"),
+        ],
+    )
+
     slam_toolbox = Node(
         package="slam_toolbox",
         executable="sync_slam_toolbox_node",
@@ -74,6 +110,7 @@ def generate_launch_description():
         use_sim_time_arg,
         slam_config_arg,
         nav2_map_saver,
+        scan_filter,
         slam_toolbox,
         nav2_lifecycle_manager,
     ])
