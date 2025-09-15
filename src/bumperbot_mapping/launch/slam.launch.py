@@ -61,8 +61,8 @@ def generate_launch_description():
                         "use_message_range_limits": False,
                         "lower_threshold": 0.2,  # minimum valid range
                         "upper_threshold": 3.0,  # maximum valid range
-                        "lower_replacement_value": .nan,
-                        "upper_replacement_value": .nan,
+                        "lower_replacement_value": float('nan'),
+                        "upper_replacement_value": float('nan'),
                     }
                 },
                 {
