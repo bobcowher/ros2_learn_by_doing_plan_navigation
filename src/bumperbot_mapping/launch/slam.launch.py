@@ -52,30 +52,13 @@ def generate_launch_description():
         executable="scan_to_scan_filter_chain",
         name="scan_filter",
         output="screen",
-        parameters=[{
-            "scan_filter_chain": [
-                {
-                    "name": "range_filter",
-                    "type": "laser_filters/LaserScanRangeFilter",
-                    "params": {
-                        "use_message_range_limits": False,
-                        "lower_threshold": 0.2,  # minimum valid range
-                        "upper_threshold": 3.0,  # maximum valid range
-                        "lower_replacement_value": float('nan'),
-                        "upper_replacement_value": float('nan'),
-                    }
-                },
-                {
-                    "name": "intensity_filter", 
-                    "type": "laser_filters/LaserScanIntensityFilter",
-                    "params": {
-                        "lower_threshold": 30.0,  # filter low intensity readings
-                        "upper_threshold": 100.0,
-                        "disp_histogram": False,
-                    }
-                }
-            ]
-        }],
+        parameters=[
+            os.path.join(
+                get_package_share_directory("bumperbot_mapping"),
+                "config",
+                "scan_filter.yaml"
+            )
+        ],
         remappings=[
             ("scan", "/scan_raw"),
             ("scan_filtered", "/scan"),
