@@ -11,34 +11,19 @@ def generate_launch_description():
     
     use_sim_time_arg = DeclareLaunchArgument(
         "use_sim_time",
-        default_value="false"  # Fixed for real hardware
+        default_value="false"
     )
     
     slam_config_arg = DeclareLaunchArgument(
         "slam_config",
         default_value=os.path.join(
             get_package_share_directory("bumperbot_mapping"),
-            "config",
+            "config", 
             "slam_toolbox.yaml"
-        ),
-        description="Full path to slam yaml file to load"
+        )
     )
     
-    # Map saver - keep as lifecycle node
-    nav2_map_saver = Node(
-        package="nav2_map_server",
-        executable="map_saver_server",
-        name="map_saver_server",
-        output="screen",
-        parameters=[
-            {"save_map_timeout": 5.0},
-            {"use_sim_time": use_sim_time},
-            {"free_thresh_default": 0.196},
-            {"occupied_thresh_default": 0.65},
-        ],
-    )
-    
-    # SLAM - run directly without lifecycle management
+    # SLAM only - no navigation, no lifecycle manager
     slam_toolbox = Node(
         package="slam_toolbox",
         executable="async_slam_toolbox_node",
@@ -47,28 +32,13 @@ def generate_launch_description():
         parameters=[
             slam_config,
             {"use_sim_time": use_sim_time},
-            {"autostart": True},  # Force auto-start
         ],
-    )
-    
-    # Lifecycle manager - only manage map_saver, not SLAM
-    nav2_lifecycle_manager = Node(
-        package="nav2_lifecycle_manager",
-        executable="lifecycle_manager",
-        name="lifecycle_manager_slam",
-        output="screen",
-        parameters=[
-            {"node_names": ["map_saver_server"]},  # Only manage map_saver
-            {"use_sim_time": use_sim_time},
-            {"autostart": True},
-            {"bond_timeout": 10.0}
-        ],
+        # Force non-lifecycle mode
+        arguments=['--ros-args', '-p', 'lifecycle_node:=false']
     )
     
     return LaunchDescription([
         use_sim_time_arg,
         slam_config_arg,
-        nav2_map_saver,
         slam_toolbox,
-        nav2_lifecycle_manager,
     ])
