@@ -47,6 +47,7 @@ def generate_launch_description():
         parameters=[
             slam_config,
             {"use_sim_time": use_sim_time},
+            {"autostart": True},  # Force auto-start
         ],
     )
     
