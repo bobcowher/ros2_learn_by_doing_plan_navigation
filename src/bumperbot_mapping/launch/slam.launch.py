@@ -46,24 +46,24 @@ def generate_launch_description():
         ],
     )
 
-    # Add scan filter to clean noisy lidar data
-    scan_filter = Node(
-        package="laser_filters",
-        executable="scan_to_scan_filter_chain",
-        name="scan_filter",
-        output="screen",
-        parameters=[
-            os.path.join(
-                get_package_share_directory("bumperbot_mapping"),
-                "config",
-                "scan_filter.yaml"
-            )
-        ],
-        remappings=[
-            ("scan", "/scan_raw"),
-            ("scan_filtered", "/scan"),
-        ],
-    )
+    # Add scan filter to clean noisy lidar data - TEMPORARILY DISABLED
+    # scan_filter = Node(
+    #     package="laser_filters",
+    #     executable="scan_to_scan_filter_chain",
+    #     name="scan_filter",
+    #     output="screen",
+    #     parameters=[
+    #         os.path.join(
+    #             get_package_share_directory("bumperbot_mapping"),
+    #             "config",
+    #             "scan_filter.yaml"
+    #         )
+    #     ],
+    #     remappings=[
+    #         ("scan", "/scan_raw"),
+    #         ("scan_filtered", "/scan"),
+    #     ],
+    # )
 
     slam_toolbox = Node(
         package="slam_toolbox",
@@ -93,7 +93,7 @@ def generate_launch_description():
         use_sim_time_arg,
         slam_config_arg,
         nav2_map_saver,
-        scan_filter,
+        # scan_filter,  # TEMPORARILY DISABLED
         slam_toolbox,
         nav2_lifecycle_manager,
     ])

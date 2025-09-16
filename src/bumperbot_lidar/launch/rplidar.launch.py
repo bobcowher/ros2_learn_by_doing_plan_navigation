@@ -17,8 +17,8 @@ def generate_launch_description():
                 'inverted': False,
                 'angle_compensate': True,
             }],
-            remappings=[
-                ('scan', '/scan_raw'),  # Publish raw data to /scan_raw
-            ],
+            # remappings=[
+            #     ('scan', '/scan_raw'),  # Publish raw data to /scan_raw
+            # ],
         ),
     ])
