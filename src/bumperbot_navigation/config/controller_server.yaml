@@ -86,7 +86,7 @@ controller_server:
           inflation_layer:
             plugin: "nav2_costmap_2d::InflationLayer"
             cost_scaling_factor: 3.0
-            inflation_radius: 0.55
+            inflation_radius: 0.2
           obstacle_layer:
             plugin: "nav2_costmap_2d::ObstacleLayer"
             enabled: True
@@ -97,8 +97,8 @@ controller_server:
               clearing: True
               marking: True
               data_type: "LaserScan"
-              raytrace_max_range: 3.0
+              raytrace_max_range: 1.5
               raytrace_min_range: 0.0
-              obstacle_max_range: 2.5
+              obstacle_max_range: 1.0
               obstacle_min_range: 0.0
           always_send_full_costmap: True
