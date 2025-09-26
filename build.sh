@@ -17,4 +17,4 @@ cp build/compile_commands.json .
 
 # Disable if robot isn't physically connected
 arduino-cli compile --fqbn arduino:avr:uno ./src/bumperbot_firmware/firmware/robot_control/
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old ./src/bumperbot_firmware_v2/firmware/robot_control/
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old ./src/bumperbot_firmware/firmware/robot_control/
