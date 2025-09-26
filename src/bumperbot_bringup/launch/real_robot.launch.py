@@ -17,9 +17,9 @@ def generate_launch_description():
 
     hardware_interface = IncludeLaunchDescription(
         os.path.join(
-            get_package_share_directory("bumperbot_firmware_v2"),
+            get_package_share_directory("bumperbot_firmware"),
             "launch",
-            "robot_controller.launch.py"
+            "hardware_interface.launch.py"
         ),
     )
     
@@ -89,7 +89,7 @@ def generate_launch_description():
         use_slam_arg,
         hardware_interface,
         laser_driver,
-        # controller,
+        controller,
         # joystick, # Can't have double joystick publishing
         imu_driver_node,
         localization,
