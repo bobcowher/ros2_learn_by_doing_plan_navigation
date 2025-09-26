@@ -75,9 +75,6 @@ void moveRobot(int leftSpeed, int rightSpeed) {
 
 // Add interrupt functions:
 void rightEncoderISR() {
-
-  rightEncoderCount++;
-
   if(digitalRead(right_encoder_phaseB) == HIGH) {
     rightEncoderCount++;
   } else {
@@ -86,9 +83,6 @@ void rightEncoderISR() {
 }
 
 void leftEncoderISR() {
-
-  leftEncoderCount++;
-
   if(digitalRead(left_encoder_phaseB) == HIGH) {
     leftEncoderCount++;
   } else {
@@ -146,4 +140,8 @@ void loop() {
     String input = Serial.readStringUntil('\n');
     parseCommand(input);
   }
+
+  // Serial.println("L2:" + String(digitalRead(2)) + " L4:" + String(digitalRead(4)) + 
+  //              " R3:" + String(digitalRead(3)) + " R5:" + String(digitalRead(5)));
+  // delay(500);
 }
