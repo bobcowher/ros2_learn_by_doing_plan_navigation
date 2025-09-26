@@ -8,8 +8,17 @@ int motorB_speed = 11;  // ENB
 int motorB_in1 = 7;    // IN3
 int motorB_in2 = 8;    // IN4
 
+// Change your pin assignments to match your actual wiring:
+int right_encoder_phaseA = 3;  // Right Green (was expecting yellow)
+int right_encoder_phaseB = 5;  // Right Yellow (was expecting green)
+int left_encoder_phaseA = 2;   // Left Green (was expecting yellow)  
+int left_encoder_phaseB = 4;   // Left Yellow (was expecting green)
+
 int currentLeftSpeed = 0;
 int currentRightSpeed = 0;
+
+volatile long leftEncoderCount = 0;
+volatile long rightEncoderCount = 0;
 
 unsigned long lastCommandTime = 0;
 const unsigned long COMMAND_TIMEOUT = 500;
@@ -26,6 +35,15 @@ void setup() {
   pinMode(motorB_speed, OUTPUT);
   pinMode(motorB_in1, OUTPUT);
   pinMode(motorB_in2, OUTPUT);
+
+  // Encoder Setup
+  pinMode(right_encoder_phaseA, INPUT_PULLUP);
+  pinMode(right_encoder_phaseB, INPUT_PULLUP);
+  pinMode(left_encoder_phaseA, INPUT_PULLUP);
+  pinMode(left_encoder_phaseB, INPUT_PULLUP);
+  
+  attachInterrupt(digitalPinToInterrupt(2), leftEncoderISR, RISING);
+  attachInterrupt(digitalPinToInterrupt(3), rightEncoderISR, RISING);
 
   delay(1000);
 
@@ -55,6 +73,29 @@ void moveRobot(int leftSpeed, int rightSpeed) {
   currentRightSpeed = rightSpeed;
 }
 
+// Add interrupt functions:
+void rightEncoderISR() {
+
+  rightEncoderCount++;
+
+  if(digitalRead(right_encoder_phaseB) == HIGH) {
+    rightEncoderCount++;
+  } else {
+    rightEncoderCount--;
+  }
+}
+
+void leftEncoderISR() {
+
+  leftEncoderCount++;
+
+  if(digitalRead(left_encoder_phaseB) == HIGH) {
+    leftEncoderCount++;
+  } else {
+    leftEncoderCount--;
+  }
+}
+
 void parseCommand(String input) {
 
   lastCommandTime = millis();
@@ -81,7 +122,14 @@ void parseCommand(String input) {
     Serial.println("OK STOP");
   } else if (command == "STATUS") {
     Serial.println("STATUS " + String(currentLeftSpeed) + " " + String(currentRightSpeed));
-  } else {
+  } else if (command == "GET_ENC") {
+    Serial.println("ENCODERS " + String(leftEncoderCount) + " " + String(rightEncoderCount));
+  } else if (command == "RST_ENC") {
+    leftEncoderCount = 0;
+    rightEncoderCount = 0;
+    Serial.println("OK RESET"); 
+  }
+  else {
     Serial.println("ERROR Unknown command: " + command);
   }
 
