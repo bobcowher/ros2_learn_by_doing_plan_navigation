@@ -13,8 +13,9 @@ def generate_launch_description():
 
     ros_distro = os.environ["ROS_DISTRO"]
     lifecycle_nodes = ["map_saver_server"]
-    if ros_distro != "humble":
-        lifecycle_nodes.append("slam_toolbox")
+    # Note: slam_toolbox in Jazzy has lifecycle issues, manage only map_saver
+    # if ros_distro != "humble":
+    #     lifecycle_nodes.append("slam_toolbox")
 
     use_sim_time_arg = DeclareLaunchArgument(
         "use_sim_time",
