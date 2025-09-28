@@ -59,7 +59,7 @@ public:
         tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 	
 	odom_timer_ = this->create_wall_timer(
-	    std::chrono::milliseconds(20),  // Every 20ms
+	    std::chrono::milliseconds(100),  // Every 20ms
 	    std::bind(&RobotDriverNode::publishOdometry, this)  // Call this function
 	);
         
