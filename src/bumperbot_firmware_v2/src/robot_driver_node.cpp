@@ -22,6 +22,13 @@ private:
     double linear_vel_ = 0.0;
     double angular_vel_ = 0.0; 
     double theta_ = 0.0;
+    int prev_left_enc_ = 0;
+    int prev_right_enc_ = 0;
+    
+    const double WHEEL_RADIUS = 0.035;  // meters
+    const double WHEELBASE = 0.2032;    // meters  
+    const int ENCODER_CPR = 627;        // counts per revolution
+					//
     rclcpp::TimerBase::SharedPtr odom_timer_;
     rclcpp::Time last_time_ = this->now();
 
@@ -101,13 +108,41 @@ private:
 	int left_enc = 0;
 	int right_enc = 0;
 	robot_.getEncoders(&left_enc, &right_enc);
+	
+	int delta_left = left_enc - prev_left_enc_;
+	int delta_right = right_enc - prev_right_enc_;
 
-	RCLCPP_INFO(this->get_logger(), "Left Encoder: %d", left_enc);	
-	RCLCPP_INFO(this->get_logger(), "Right Encoder: %d", right_enc);	
+	prev_left_enc_ = left_enc;
+	prev_right_enc_ = right_enc;
+
+	double left_distance = (delta_left / (double)ENCODER_CPR) * (2 * M_PI * WHEEL_RADIUS);
+	double right_distance = (delta_right / (double)ENCODER_CPR) * (2 * M_PI * WHEEL_RADIUS);
+	
+	// RCLCPP_INFO(this->get_logger(), "Left Encoder: %d", left_enc);	
+	// RCLCPP_INFO(this->get_logger(), "Right Encoder: %d", right_enc);	
+	
+	// RCLCPP_INFO(this->get_logger(), "Right Distance: %f", right_distance);	
+	// RCLCPP_INFO(this->get_logger(), "Left Distance: %f", left_distance);	
+	// Calculate robot motion from wheel distances
+	double robot_distance = (left_distance + right_distance) / 2.0;
+	double robot_rotation = (right_distance - left_distance) / WHEELBASE;
+
+	// Calculate time step for velocity
+	rclcpp::Time current_time = this->now();
+	double dt = (current_time - last_time_).seconds();
+	last_time_ = current_time;
+
+	// Update robot pose using measured distances
+	x_ += robot_distance * cos(theta_ + robot_rotation/2.0);
+	y_ += robot_distance * sin(theta_ + robot_rotation/2.0);
+	theta_ += robot_rotation;
+
+	// Calculate current velocities from measured movement
+	linear_vel_ = (dt > 0) ? robot_distance / dt : 0.0;
+	angular_vel_ = (dt > 0) ? robot_rotation / dt : 0.0;
 
         // TF transform
         geometry_msgs::msg::TransformStamped odom_trans;
-        rclcpp::Time current_time = this->now();
         odom_trans.header.stamp = current_time;
         odom_trans.header.frame_id = "odom";
         odom_trans.child_frame_id = "base_footprint";
