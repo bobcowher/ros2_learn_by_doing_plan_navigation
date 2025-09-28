@@ -36,7 +36,7 @@ private:
 public:
     RobotDriverNode() : Node("robot_driver") {
         // Declare parameter for serial port
-        this->declare_parameter("serial_port", "/dev/ttyUSB0");
+        this->declare_parameter("serial_port", "/dev/arduino");
         serial_port_ = this->get_parameter("serial_port").as_string();
 
         
