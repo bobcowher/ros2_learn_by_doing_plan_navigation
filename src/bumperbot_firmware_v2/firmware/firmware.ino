@@ -76,9 +76,9 @@ void moveRobot(int leftSpeed, int rightSpeed) {
 // Add interrupt functions:
 void rightEncoderISR() {
   if(digitalRead(right_encoder_phaseB) == HIGH) {
-    rightEncoderCount++;
-  } else {
     rightEncoderCount--;
+  } else {
+    rightEncoderCount++;
   }
 }
 

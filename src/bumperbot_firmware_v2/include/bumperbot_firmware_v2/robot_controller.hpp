@@ -39,6 +39,7 @@ public:
     bool sendCommand(const std::string& cmd);
     std::string readResponse();
     void moveRobot(int left_speed, int right_speed);
+    void getEncoders(int *left_enc, int *right_enc);
     void stopRobot();
     bool isConnected();
     int velocityToMotorSpeed(double velocity_ms);

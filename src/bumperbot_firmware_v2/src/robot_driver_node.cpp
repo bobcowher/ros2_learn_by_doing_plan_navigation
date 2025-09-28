@@ -1,10 +1,12 @@
 // src/robot_driver_node.cpp
+#include <rclcpp/logging.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include "bumperbot_firmware_v2/robot_controller.hpp"
 #include <nav_msgs/msg/odometry.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/LinearMath/Quaternion.h>
+#include <thread>
 
 class RobotDriverNode : public rclcpp::Node {
 private:
@@ -37,11 +39,7 @@ public:
             rclcpp::shutdown();
             return;
         }
-        
-	odom_timer_ = this->create_wall_timer(
-	    std::chrono::milliseconds(20),  // Every 20ms
-	    std::bind(&RobotDriverNode::publishOdometry, this)  // Call this function
-);
+
         RCLCPP_INFO(this->get_logger(), "Robot connected on %s", serial_port_.c_str());
         
         // Subscribe to velocity commands
@@ -50,10 +48,13 @@ public:
             std::bind(&RobotDriverNode::cmd_vel_callback, this, std::placeholders::_1)
         );
 
-	updateOdometry(0.0, 0.0);
-
         odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
         tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+	
+	odom_timer_ = this->create_wall_timer(
+	    std::chrono::milliseconds(20),  // Every 20ms
+	    std::bind(&RobotDriverNode::publishOdometry, this)  // Call this function
+	);
         
         RCLCPP_INFO(this->get_logger(), "Robot driver node started");
     }
@@ -76,28 +77,34 @@ private:
 	
         RCLCPP_DEBUG(this->get_logger(), "Sending: left=%d, right=%d", 
                     static_cast<int>(left_velocity), static_cast<int>(right_velocity));
-	
-	updateOdometry(msg->linear.x, msg->angular.z);
     }
 
 
-    void updateOdometry(double linear_vel, double angular_vel) {
-        rclcpp::Time current_time = this->now();
-        double dt = (current_time - last_time_).seconds();
-        
-        // Dead reckoning (basic odometry)
-        x_ += linear_vel * cos(theta_) * dt;
-        y_ += linear_vel * sin(theta_) * dt;
-        theta_ += angular_vel * dt;
-        
-        // Publish transform
-        // publishOdometry(current_time, linear_vel, angular_vel);
-	linear_vel_ = linear_vel;
-	angular_vel_ = angular_vel;
-        last_time_ = current_time;
-    }
+ //    void updateOdometry(double linear_vel, double angular_vel) {
+ //        rclcpp::Time current_time = this->now();
+ //        double dt = (current_time - last_time_).seconds();
+ //        
+ //        // Dead reckoning (basic odometry)
+ //        x_ += linear_vel * cos(theta_) * dt;
+ //        y_ += linear_vel * sin(theta_) * dt;
+ //        theta_ += angular_vel * dt;
+ //        
+ //        // Publish transform
+ //        // publishOdometry(current_time, linear_vel, angular_vel);
+	// linear_vel_ = linear_vel;
+	// angular_vel_ = angular_vel;
+ //        last_time_ = current_time;
+ //    }
     
     void publishOdometry() {
+
+	int left_enc = 0;
+	int right_enc = 0;
+	robot_.getEncoders(&left_enc, &right_enc);
+
+	RCLCPP_INFO(this->get_logger(), "Left Encoder: %d", left_enc);	
+	RCLCPP_INFO(this->get_logger(), "Right Encoder: %d", right_enc);	
+
         // TF transform
         geometry_msgs::msg::TransformStamped odom_trans;
         rclcpp::Time current_time = this->now();

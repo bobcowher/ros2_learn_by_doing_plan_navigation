@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
+#include <vector>
+#include <bits/stdc++.h>
 
 #include "bumperbot_firmware_v2/robot_controller.hpp"
 
@@ -19,6 +21,7 @@ RobotController::~RobotController() {
 
 bool RobotController::connect(const std::string& port) {
 	serial_fd = open(port.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
+	tcflush(serial_fd, TCIOFLUSH);
 	if (serial_fd < 0) {
 		std::cerr << "Failed to open " << port << std::endl;
 		return false;
@@ -149,5 +152,42 @@ bool RobotController::sendCommand(const std::string &cmd) {
 
 	ssize_t bytes_written = write(serial_fd, cmd.c_str(), cmd.length());
 	return bytes_written == static_cast<ssize_t>(cmd.length());
+}
+
+// std::string RobotController::getResponse(){
+//     // Read available data
+//     char buffer[256];
+//     ssize_t bytes_read = read(serial_fd, buffer, sizeof(buffer) - 1);
+//     if(bytes_read <= 0) return "";
+//     
+//     buffer[bytes_read] = '\0';
+//     return std::string(buffer);
+// }
+
+void RobotController::getEncoders(int *left_enc, int *right_enc){
+	// sendCommand("GET_ENC 0 0");
+	// std::string response = readResponse();
+	// std::vector<int> enc_values;
+
+	// if(response.find("ENCODERS") != std::string::npos){
+	//
+	// 	std::cout << "Encoders" << std::endl;
+		// response.replace(0, 9, "");
+		// 
+		// std::string word;
+		// std::stringstream ss(response);
+		//
+		// while(getline(ss, word, ' ')){
+		// 	// std::cout << word << std::endl;
+		// 	enc_values.push_back(std::stoi(word));
+		// }
+	// }
+
+	// *left_enc = enc_values[0];
+	// *right_enc = enc_values[1];
+	 
+	*left_enc = 5;
+	*right_enc = 10;
+
 }
 
