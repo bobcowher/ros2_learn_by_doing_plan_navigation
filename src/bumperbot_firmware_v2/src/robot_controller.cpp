@@ -168,7 +168,7 @@ bool RobotController::sendCommand(const std::string &cmd) {
 
 void RobotController::getEncoders(int *left_enc, int *right_enc){
 
-	// if(!systemReady) return;
+	if(!systemReady) return;
 
 	// sendCommand("GET_ENC 0 0\n");
 	std::string response = readResponse();
