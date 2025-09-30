@@ -24,7 +24,8 @@ private:
     // State tracking
     double last_left_velocity = 0.0;
     double last_right_velocity = 0.0;
-    
+   
+    bool systemReady = false;
     // Your robot's theoretical max speed:
     // 100 RPM = 100/60 = 1.67 rotations per second
     // 1.67 * 0.22m = 0.367 m/s max speed

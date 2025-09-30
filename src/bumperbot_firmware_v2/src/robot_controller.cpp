@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -50,6 +51,7 @@ bool RobotController::connect(const std::string& port) {
 		if(response.find("READY") != std::string::npos){
 			std::cout << "Arduino ready!" << std::endl;
 			return true;
+			systemReady = true;
 		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -165,7 +167,10 @@ bool RobotController::sendCommand(const std::string &cmd) {
 // }
 
 void RobotController::getEncoders(int *left_enc, int *right_enc){
-	sendCommand("GET_ENC 0 0\n");
+
+	if(!systemReady) return;
+
+	// sendCommand("GET_ENC 0 0\n");
 	std::string response = readResponse();
 	std::vector<int> enc_values;
 
