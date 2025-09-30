@@ -168,27 +168,35 @@ bool RobotController::sendCommand(const std::string &cmd) {
 
 void RobotController::getEncoders(int *left_enc, int *right_enc){
 
-	if(!systemReady) return;
+	// if(!systemReady) return;
 
 	// sendCommand("GET_ENC 0 0\n");
 	std::string response = readResponse();
 	std::vector<int> enc_values;
-
-	if(response.find("ENCODERS") != std::string::npos){
 	
-	 	// std::cout << "Encoders" << std::endl;
-		response.replace(0, 9, "");
-		//  
-		std::string word;
-		std::stringstream ss(response);
-		// 
-		while(getline(ss, word, ' ')){
-		 	// std::cout << word << std::endl;
-		 	enc_values.push_back(std::stoi(word));
+	auto start_time = std::chrono::steady_clock::now();
+
+	while(std::chrono::steady_clock::now() - start_time < std::chrono::seconds(5)){
+		std::string response = readResponse();
+		if(response.find("ENCODERS") != std::string::npos){
+			response.replace(0, 9, "");
+			
+			std::string word;
+			std::stringstream ss(response);
+			// 
+			while(getline(ss, word, ' ')){
+				// std::cout << word << std::endl;
+				enc_values.push_back(std::stoi(word));
+			}
+			
+			*left_enc = enc_values[0];
+			*right_enc = enc_values[1];
+
+			return;
 		}
-		
-		*left_enc = enc_values[0];
-		*right_enc = enc_values[1];
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
+
 }
 
