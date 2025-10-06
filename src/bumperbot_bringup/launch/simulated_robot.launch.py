@@ -108,6 +108,6 @@ def generate_launch_description():
         localization,
         navigation,
         slam,
-        rviz 
-        # rviz_slam
+        rviz, 
+        rviz_slam
     ])
