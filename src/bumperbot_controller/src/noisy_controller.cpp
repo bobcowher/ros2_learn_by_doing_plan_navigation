@@ -34,7 +34,7 @@ NoisyController::NoisyController(const std::string& name)
 
     transform_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
     transform_stamped_.header.frame_id = "odom";
-    transform_stamped_.child_frame_id = "base_footprint_noisy";
+    transform_stamped_.child_frame_id = "base_footprint";
 
     prev_time_ = get_clock()->now();
 }
