@@ -50,7 +50,6 @@ bool RobotController::connect(const std::string& port) {
 		std::string response = readResponse();
 		if(response.find("READY") != std::string::npos){
 			std::cout << "Arduino ready!" << std::endl;
-			return true;
 			systemReady = true;
 		}
 
