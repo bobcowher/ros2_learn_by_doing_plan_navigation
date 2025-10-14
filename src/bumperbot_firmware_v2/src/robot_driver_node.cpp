@@ -118,11 +118,11 @@ private:
 	double left_distance = (delta_left / (double)ENCODER_CPR) * (2 * M_PI * WHEEL_RADIUS);
 	double right_distance = (delta_right / (double)ENCODER_CPR) * (2 * M_PI * WHEEL_RADIUS);
 	
-	// RCLCPP_INFO(this->get_logger(), "Left Encoder: %d", left_enc);	
-	// RCLCPP_INFO(this->get_logger(), "Right Encoder: %d", right_enc);	
+	RCLCPP_INFO(this->get_logger(), "Left Encoder: %d", left_enc);	
+	RCLCPP_INFO(this->get_logger(), "Right Encoder: %d", right_enc);	
 	
-	// RCLCPP_INFO(this->get_logger(), "Right Distance: %f", right_distance);	
-	// RCLCPP_INFO(this->get_logger(), "Left Distance: %f", left_distance);	
+	RCLCPP_INFO(this->get_logger(), "Right Distance: %f", right_distance);	
+	RCLCPP_INFO(this->get_logger(), "Left Distance: %f", left_distance);	
 	// Calculate robot motion from wheel distances
 	double robot_distance = (left_distance + right_distance) / 2.0;
 	double robot_rotation = (right_distance - left_distance) / WHEELBASE;
