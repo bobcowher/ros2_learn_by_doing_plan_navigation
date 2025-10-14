@@ -52,6 +52,9 @@ def generate_launch_description():
             "launch",
             "global_localization.launch.py"
         ),
+        launch_arguments={
+            "map_name": "small_house_new"
+        }.items(),
         condition=UnlessCondition(use_slam)
     )
 
