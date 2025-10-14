@@ -51,6 +51,7 @@ bool RobotController::connect(const std::string& port) {
 		if(response.find("READY") != std::string::npos){
 			std::cout << "Arduino ready!" << std::endl;
 			systemReady = true;
+			return true;
 		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
