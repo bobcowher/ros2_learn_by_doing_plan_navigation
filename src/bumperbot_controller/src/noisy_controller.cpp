@@ -50,11 +50,11 @@ void NoisyController::jointCallback(const sensor_msgs::msg::JointState &state)
     // Add noise to wheel readings
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine noise_generator(seed);
-    std::normal_distribution<double> left_encoder_noise(0.0, 0.005);
-    std::normal_distribution<double> right_encoder_noise(0.0, 0.005);
+    std::normal_distribution<double> left_encoder_noise(0.0, 0.001);
+    std::normal_distribution<double> right_encoder_noise(0.0, 0.001);
 
-    double wheel_encoder_left = state.position.at(1) + left_encoder_noise(noise_generator);
-    double wheel_encoder_right = state.position.at(0) + right_encoder_noise(noise_generator);
+    double wheel_encoder_left = state.position.at(0) + left_encoder_noise(noise_generator);
+    double wheel_encoder_right = state.position.at(1) + right_encoder_noise(noise_generator);
 
     double dp_left = wheel_encoder_left - left_wheel_prev_pos_;
     double dp_right = wheel_encoder_right - right_wheel_prev_pos_;
@@ -62,13 +62,15 @@ void NoisyController::jointCallback(const sensor_msgs::msg::JointState &state)
     rclcpp::Duration dt = msg_time - prev_time_;
 
     // Actualize the prev pose for the next itheration
-    left_wheel_prev_pos_ = state.position.at(1);
-    right_wheel_prev_pos_ = state.position.at(0);
+    left_wheel_prev_pos_ = state.position.at(0);
+    right_wheel_prev_pos_ = state.position.at(1);
     prev_time_ = state.header.stamp;
 
     // Calculate the rotational speed of each wheel
     double fi_left = dp_left / dt.seconds();
     double fi_right = dp_right / dt.seconds();
+
+
 
     // Calculate the linear and angular velocity
     double linear = (wheel_radius_ * fi_right + wheel_radius_ * fi_left) / 2;
