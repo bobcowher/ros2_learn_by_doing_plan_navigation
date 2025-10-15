@@ -181,16 +181,15 @@ void RobotController::getEncoders(int *left_enc, int *right_enc){
 		if(response.find("ENCODERS") != std::string::npos){
 			response.replace(0, 9, "");
 			
-			std::string word;
+			std::string left_enc_str;
+			std::string right_enc_str;
 			std::stringstream ss(response);
-			// 
-			while(getline(ss, word, ' ')){
-				// std::cout << word << std::endl;
-				enc_values.push_back(std::stoi(word));
-			}
 			
-			*left_enc = enc_values[0];
-			*right_enc = enc_values[1];
+			ss >> left_enc_str;
+			ss >> right_enc_str;
+
+			*left_enc = std::stoi(left_enc_str);
+			*right_enc = std::stoi(right_enc_str);
 
 			return;
 		}
