@@ -26,6 +26,9 @@ def generate_launch_description():
             "launch",
             "robot_controller.launch.py"
         ),
+        launch_arguments={
+            "use_slam": use_slam
+        }.items(),
     )
     
     laser_driver = IncludeLaunchDescription(
