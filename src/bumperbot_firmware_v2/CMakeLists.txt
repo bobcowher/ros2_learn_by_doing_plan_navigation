@@ -35,6 +35,10 @@ ament_target_dependencies(robot_driver_node
   tf2
 )
 
+ament_target_dependencies(robot_controller
+  rclcpp
+)
+
 # Install targets
 install(TARGETS
   robot_driver_node

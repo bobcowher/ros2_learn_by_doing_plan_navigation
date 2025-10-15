@@ -1,4 +1,6 @@
 #include <cstdlib>
+#include <rclcpp/logger.hpp>
+#include <rclcpp/logging.hpp>
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -34,12 +36,17 @@ bool RobotController::connect(const std::string& port) {
 	cfsetispeed(&tty, B9600);
 	cfsetospeed(&tty, B9600);
 
-	// TODO: Go find out what this does. 
+	// Serial configuration to prevent echo
 	tty.c_cflag |= (CLOCAL | CREAD);
 	tty.c_cflag &= ~PARENB;
 	tty.c_cflag &= ~CSTOPB;
 	tty.c_cflag &= ~CSIZE;
 	tty.c_cflag |= CS8;
+	
+	// Disable echo and canonical mode
+	tty.c_lflag &= ~(ECHO | ECHOE | ICANON);
+	tty.c_iflag &= ~(IXON | IXOFF | IXANY);
+	tty.c_oflag &= ~OPOST;
 
 	tcsetattr(serial_fd, TCSANOW, &tty);
 
@@ -178,7 +185,12 @@ void RobotController::getEncoders(int *left_enc, int *right_enc){
 
 	while(std::chrono::steady_clock::now() - start_time < std::chrono::seconds(5)){
 		std::string response = readResponse();
+		// if(!response.empty()) {
+		// 	RCLCPP_INFO(rclcpp::get_logger("robot_controller"), "Raw response: '%s'", response.c_str());
+		// }
 		if(response.find("ENCODERS") != std::string::npos){
+        		
+			// RCLCPP_INFO(rclcpp::get_logger("robot_controller"), "Found ENCODERS in: %s", response.c_str());
 			response.replace(0, 9, "");
 			
 			std::string left_enc_str;
