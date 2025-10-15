@@ -71,7 +71,8 @@ def generate_launch_description():
             "global_localization.launch.py"
         ),
         launch_arguments={
-            "map_name": LaunchConfiguration("map_name")
+            "map_name": LaunchConfiguration("map_name"),
+            "use_sim_time": "False"
         }.items(),
         condition=UnlessCondition(use_slam)
     )
@@ -94,6 +95,9 @@ def generate_launch_description():
             "launch",
             "navigation.launch.py"
         ),
+        launch_arguments={
+            "use_sim_time": "False"
+        }.items(),
     )
     
     return LaunchDescription([
