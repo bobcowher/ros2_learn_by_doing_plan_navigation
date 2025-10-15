@@ -37,6 +37,7 @@ public:
     RobotDriverNode() : Node("robot_driver") {
         // Declare parameter for serial port
         this->declare_parameter("serial_port", "/dev/arduino");
+        // this->declare_parameter("serial_port", "/dev/ttyUSB0");
         serial_port_ = this->get_parameter("serial_port").as_string();
 
         
@@ -58,7 +59,7 @@ public:
         odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
         tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 	
-	odom_timer_ = this->create_wall_timer(
+	odom_timer_ = this->create_timer(
 	    std::chrono::milliseconds(500),  // Every 20ms
 	    std::bind(&RobotDriverNode::publishOdometry, this)  // Call this function
 	);
@@ -86,23 +87,6 @@ private:
                     static_cast<int>(left_velocity), static_cast<int>(right_velocity));
     }
 
-
- //    void updateOdometry(double linear_vel, double angular_vel) {
- //        rclcpp::Time current_time = this->now();
- //        double dt = (current_time - last_time_).seconds();
- //        
- //        // Dead reckoning (basic odometry)
- //        x_ += linear_vel * cos(theta_) * dt;
- //        y_ += linear_vel * sin(theta_) * dt;
- //        theta_ += angular_vel * dt;
- //        
- //        // Publish transform
- //        // publishOdometry(current_time, linear_vel, angular_vel);
-	// linear_vel_ = linear_vel;
-	// angular_vel_ = angular_vel;
- //        last_time_ = current_time;
- //    }
-    
     void publishOdometry() {
 
 	int left_enc = 0;
