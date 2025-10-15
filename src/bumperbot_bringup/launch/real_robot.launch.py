@@ -15,6 +15,11 @@ def generate_launch_description():
         default_value="false"
     )
 
+    map_name_arg = DeclareLaunchArgument(
+        "map_name",
+        default_value="basement"
+    )
+
     hardware_interface = IncludeLaunchDescription(
         os.path.join(
             get_package_share_directory("bumperbot_firmware_v2"),
@@ -65,6 +70,9 @@ def generate_launch_description():
             "launch",
             "global_localization.launch.py"
         ),
+        launch_arguments={
+            "map_name": LaunchConfiguration("map_name")
+        }.items(),
         condition=UnlessCondition(use_slam)
     )
 
@@ -90,6 +98,7 @@ def generate_launch_description():
     
     return LaunchDescription([
         use_slam_arg,
+        map_name_arg,
         hardware_interface,
         laser_driver,
         # controller,
