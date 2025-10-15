@@ -6,7 +6,7 @@ behavior_server:
     behavior_plugins: ["spin", "backup", "wait"]
     global_frame: odom
     robot_base_frame: base_link
-    transform_tolerance: 0.3
+    transform_tolerance: 0.5
     use_sim_time: true
     simulate_ahead_time: 2.0
     max_rotational_vel: 1.0
