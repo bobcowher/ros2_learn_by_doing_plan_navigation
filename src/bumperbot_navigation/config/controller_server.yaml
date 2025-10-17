@@ -51,7 +51,7 @@ controller_server:
       interpolate_curvature_after_goal: false
       cost_scaling_dist: 0.6  # INCREASED from 0.3 - consider costs farther out
       cost_scaling_gain: 1.0
-      inflation_cost_scaling_factor: 3.0
+      inflation_cost_scaling_factor: 1.0
 
 local_costmap:
   local_costmap:
