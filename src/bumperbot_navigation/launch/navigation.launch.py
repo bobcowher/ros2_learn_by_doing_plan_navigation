@@ -75,12 +75,12 @@ def generate_launch_description():
             {"default_nav_to_pose_bt_xml": os.path.join(
                 get_package_share_directory("bumperbot_navigation"),
                 "behavior_tree",
-                "simple_navigation.xml"
+                "simple_navigation_with_replanning_and_recovery.xml"
             )},
             {"default_nav_through_poses_bt_xml": os.path.join(
                 get_package_share_directory("bumperbot_navigation"),
                 "behavior_tree",
-                "simple_navigation.xml"
+                "simple_navigation_with_replanning_and_recovery.xml"
             )}
         ]
     )
